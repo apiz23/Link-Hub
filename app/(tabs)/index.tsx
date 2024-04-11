@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import { Button, H1, Dialog, ScrollView } from "tamagui";
 import { Link } from "expo-router";
-import { ExternalLink, Folder, X } from "@tamagui/lucide-icons";
+import { ExternalLink, Folder, RefreshCw, X } from "@tamagui/lucide-icons";
 
 interface Link {
 	id: string;
@@ -16,32 +16,33 @@ interface Link {
 export default function Home() {
 	const [links, setLinks] = useState<Link[]>([]);
 
-	useEffect(() => {
-		const fetchLinks = async () => {
-			try {
-				const { data: linkHub, error } = await supabase
-					.from("link_hub")
-					.select("*");
+	const fetchLinks = async () => {
+		try {
+			const { data: linkHub, error } = await supabase.from("link_hub").select("*");
 
-				if (error) {
-					console.error("Error fetching links:", error.message);
-					return;
-				}
-
-				if (linkHub && linkHub.length > 0) {
-					setLinks(linkHub);
-				}
-			} catch (error: any) {
+			if (error) {
 				console.error("Error fetching links:", error.message);
+				return;
 			}
-		};
 
+			if (linkHub && linkHub.length > 0) {
+				setLinks(linkHub);
+			}
+		} catch (error: any) {
+			console.error("Error fetching links:", error.message);
+		}
+	};
+
+	useEffect(() => {
 		fetchLinks();
 	}, []);
 
 	return (
 		<View style={styles.container}>
 			<H1 style={styles.title}>Links</H1>
+			<Button icon={RefreshCw} onPress={fetchLinks}>
+				Refresh
+			</Button>
 			<ScrollView
 				width="100%"
 				padding="$1"
@@ -82,16 +83,20 @@ export default function Home() {
 										<Dialog.Title>{link.name}</Dialog.Title>
 										<Dialog.Description>{link.url}</Dialog.Description>
 										<Link href={link.url} asChild>
-											<Button style={styles.buttonDialog} icon={<ExternalLink />} />
+											<Button
+												style={styles.buttonDialog}
+												icon={<ExternalLink size={20} />}
+											/>
 										</Link>
 										<Dialog.Close asChild>
 											<Button
 												position="absolute"
 												top={3}
 												right={3}
-												size={2}
+												size={30}
 												circular
 												icon={X}
+												margin={5}
 											/>
 										</Dialog.Close>
 									</Dialog.Content>
@@ -134,7 +139,7 @@ const styles = StyleSheet.create({
 		marginBottom: 100,
 	},
 	buttonDialog: {
-		width: "Fit",
+		marginTop: 25,
 		alignSelf: "flex-end",
 	},
 	dialogTrigger: {
