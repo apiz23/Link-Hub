@@ -24,7 +24,7 @@ export default function Home() {
 
 	return (
 		<View style={styles.container}>
-			<H1 style={styles.title}>Links</H1>
+			<H1 style={styles.title}>LINKS</H1>
 			<Button icon={RefreshCw} onPress={fetchLinks}>
 				Refresh
 			</Button>

@@ -74,7 +74,7 @@ export default function Crud() {
 
 	return (
 		<View style={styles.container}>
-			<H1>CRUD</H1>
+			<H1 style={styles.title}>CRUD</H1>
 			<ToggleGroup
 				orientation="horizontal"
 				type="single"
@@ -177,9 +177,10 @@ export default function Crud() {
 
 const styles = StyleSheet.create({
 	container: {
+		flex: 1,
+		alignItems: "center",
 		padding: 20,
 		paddingTop: 100,
-		flex: 1,
 		width: "100%",
 	},
 	triggerContent: {
@@ -188,8 +189,9 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 	},
 	title: {
+		marginBottom: 30,
 		paddingTop: 40,
-		fontSize: 20,
+		fontSize: 50,
 		fontWeight: "bold",
 	},
 	separator: {
