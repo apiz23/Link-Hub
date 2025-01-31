@@ -16,7 +16,7 @@ class LinkDetailsBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 1,
+      height: MediaQuery.of(context).size.height * 0.9,
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,21 +26,25 @@ class LinkDetailsBottomSheet extends StatelessWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          Text('Name: ${link.name}'),
-          Text('Description: ${link.description}'),
-          Text('Link: ${link.link}'),
-          Text('Created: ${link.createdAt.toString()}'),
-          const SizedBox(height: 16),
-
-          Center(
-            child: QrImageView(
-              data: link.link,
-              version: QrVersions.auto,
-              size: 300.0,
+          Expanded(
+            child: ListView(
+              children: [
+                _buildDetailItem('Title', link.name),
+                _buildDetailItem('Description', link.description),
+                _buildDetailItem('Link', link.link),
+                _buildDetailItem('Created', link.createdAt.toString()),
+                const SizedBox(height: 16),
+                Center(
+                  child: QrImageView(
+                    data: link.link,
+                    version: QrVersions.auto,
+                    size: 300.0,
+                  ),
+                ),
+              ],
             ),
           ),
-
-          const Spacer(),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -67,6 +71,46 @@ class LinkDetailsBottomSheet extends StatelessWidget {
                 child: const Text('Delete Link'),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey.shade300,
+            width: 1.0,
+          ),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 1,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                fontSize: 16.0,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontSize: 16.0,
+              ),
+            ),
           ),
         ],
       ),

@@ -1,3 +1,5 @@
+import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
+import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:flutter/material.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -12,24 +14,27 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
+    return CurvedNavigationBar(
+      backgroundColor: Color(0xFFFBF5DD),
+      color: const Color(0xFF16404D),
+      animationDuration: const Duration(milliseconds: 300),
+      index: currentIndex,
       onTap: onTap,
-      backgroundColor: Color(0xAA6CDDC6),
-      selectedItemColor: Color(0xFF16404D),
-      unselectedItemColor: Colors.black38,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
+      items: [
+        CurvedNavigationBarItem(
+          child: const Icon(Icons.home, size: 30, color: Colors.white),
           label: 'Home',
+          labelStyle: const TextStyle(color: Colors.white),
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.link),
+        CurvedNavigationBarItem(
+          child: const Icon(Icons.link, size: 30, color: Colors.white),
           label: 'Links',
+          labelStyle: const TextStyle(color: Colors.white),
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
+        CurvedNavigationBarItem(
+          child: const Icon(Icons.settings, size: 30, color: Colors.white),
           label: 'Settings',
+          labelStyle: const TextStyle(color: Colors.white),
         ),
       ],
     );
