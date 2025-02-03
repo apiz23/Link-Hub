@@ -116,14 +116,25 @@ class _LinkListScreenState extends State<LinkListScreen> {
             padding: const EdgeInsets.all(20.0),
             child: TextField(
               controller: _searchController,
+              cursorColor: Colors.black,
               decoration: InputDecoration(
                 labelText: 'Search Links',
                 labelStyle: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
+                  color: Colors.black,
                 ),
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.black),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.black), // Black border when not focused
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.black, width: 2.0), // Thicker black border when focused
                 ),
               ),
             ),

@@ -34,22 +34,23 @@ class _HomeViewState extends State<HomeView> {
       body: Container(
         padding: EdgeInsets.fromLTRB(20, 50, 20, 10),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          // mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Welcome to LinkHub',
+              textAlign: TextAlign.left,
               style: GoogleFonts.inter(
-                textStyle: Theme.of(context).textTheme.displayLarge,
-                fontSize: 36,
+                fontSize:
+                MediaQuery.of(context).size.width * 0.08,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF16404D),
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 4),
             Text(
               'Collection of URL personally',
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.left,
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w400,
@@ -57,26 +58,26 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
             SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF16404D),
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  ),
-                  child: Text(
-                    'Learn More',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   children: [
+            //     TextButton(
+            //       onPressed: () {},
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: Color(0xFF16404D),
+            //         padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+            //       ),
+            //       child: Text(
+            //         'Learn More',
+            //         style: GoogleFonts.inter(
+            //           fontSize: 18,
+            //           fontWeight: FontWeight.w600,
+            //           color: Colors.white,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),
