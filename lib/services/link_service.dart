@@ -5,12 +5,12 @@ class LinkService {
   static final _client = Supabase.instance.client;
 
   static Future<List<Link>> fetchLinks() async {
-    final response = await _client.from('link-website').select().order('created_at', ascending: false);
+    final response = await _client.from('link-hub').select().order('created_at', ascending: false);
     return response.map<Link>((link) => Link.fromMap(link)).toList();
   }
 
   static Future<void> addLink(Link link) async {
-    await _client.from('link-website').insert({
+    await _client.from('link-hub').insert({
       'name': link.name,
       'description': link.description,
       'link': link.link,
@@ -19,6 +19,6 @@ class LinkService {
   }
 
   static Future<void> deleteLink(int id) async {
-    await _client.from('link-website').delete().eq('id', id);
+    await _client.from('link-hub').delete().eq('id', id);
   }
 }

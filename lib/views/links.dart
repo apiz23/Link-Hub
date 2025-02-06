@@ -14,6 +14,7 @@ class LinkListScreen extends StatefulWidget {
 }
 
 class _LinkListScreenState extends State<LinkListScreen> {
+  List<Link> _allLinks = [];
   List<Link> _links = [];
   Map<String, List<Link>> _groupedLinks = {};
   bool _isLoading = true;
@@ -29,10 +30,12 @@ class _LinkListScreenState extends State<LinkListScreen> {
 
   Future<void> _fetchLinks() async {
     setState(() => _isLoading = true);
-    _links = await LinkService.fetchLinks();
+    _allLinks = await LinkService.fetchLinks();
+    _links = List.from(_allLinks);
     _groupLinksByCategory();
     setState(() => _isLoading = false);
   }
+
 
   // Group links by their category
   void _groupLinksByCategory() {
@@ -52,22 +55,32 @@ class _LinkListScreenState extends State<LinkListScreen> {
   void _filterLinks() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _groupedLinks = _groupedLinks.map((category, links) {
-        return MapEntry(
-          category,
-          links.where((link) => link.name.toLowerCase().contains(query)).toList(),
-        );
-      });
+      if (query.isEmpty) {
+        _links = List.from(_allLinks);
+      } else {
+        _links = _allLinks.where((link) => link.name.toLowerCase().contains(query)).toList();
+      }
     });
   }
 
+
+
   List<Link> _getFilteredLinks() {
-    if (_selectedFilter == "All") {
-      return _links.where((link) => link.category != "Private").toList();
-    } else {
-      return _links.where((link) => link.category == _selectedFilter).toList();
+    final query = _searchController.text.toLowerCase();
+
+    var filtered = _links.where((link) => link.category != "Private").toList();
+
+    if (_selectedFilter != "All") {
+      filtered = filtered.where((link) => link.category == _selectedFilter).toList();
     }
+
+    if (query.isNotEmpty) {
+      filtered = filtered.where((link) => link.name.toLowerCase().contains(query)).toList();
+    }
+
+    return filtered;
   }
+
 
   Widget _buildFilterTabs() {
     final filters = ["All", ..._groupedLinks.keys, "Private"];
@@ -79,7 +92,6 @@ class _LinkListScreenState extends State<LinkListScreen> {
           return GestureDetector(
             onTap: () async {
               if (filter == "Private") {
-                // Show passcode dialog
                 bool isAuthenticated = await _showPasscodeDialog();
                 if (isAuthenticated) {
                   Navigator.push(
