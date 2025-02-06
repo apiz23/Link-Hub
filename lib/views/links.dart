@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:linkhub/components/link_card.dart';
 import 'package:linkhub/components/link_details_bottom_sheet.dart';
 import 'package:linkhub/models/link_model.dart';
+import 'package:linkhub/views/private_link.dart';
 import '../services/link_service.dart';
 
 class LinkListScreen extends StatefulWidget {
@@ -14,9 +15,10 @@ class LinkListScreen extends StatefulWidget {
 
 class _LinkListScreenState extends State<LinkListScreen> {
   List<Link> _links = [];
-  List<Link> _filteredLinks = [];
+  Map<String, List<Link>> _groupedLinks = {};
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
+  String _selectedFilter = "All";
 
   @override
   void initState() {
@@ -28,67 +30,141 @@ class _LinkListScreenState extends State<LinkListScreen> {
   Future<void> _fetchLinks() async {
     setState(() => _isLoading = true);
     _links = await LinkService.fetchLinks();
-    _filteredLinks = _links;
+    _groupLinksByCategory();
     setState(() => _isLoading = false);
   }
+
+  // Group links by their category
+  void _groupLinksByCategory() {
+    _groupedLinks.clear();
+    for (var link in _links) {
+      if (link.category.isNotEmpty && link.category != "Private") {
+        if (_groupedLinks.containsKey(link.category)) {
+          _groupedLinks[link.category]?.add(link);
+        } else {
+          _groupedLinks[link.category] = [link];
+        }
+      }
+    }
+  }
+
 
   void _filterLinks() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredLinks = _links
-          .where((link) => link.name.toLowerCase().contains(query))
-          .toList();
+      _groupedLinks = _groupedLinks.map((category, links) {
+        return MapEntry(
+          category,
+          links.where((link) => link.name.toLowerCase().contains(query)).toList(),
+        );
+      });
     });
   }
 
-  Future<void> _addLink() async {
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-    final linkController = TextEditingController();
+  List<Link> _getFilteredLinks() {
+    if (_selectedFilter == "All") {
+      return _links.where((link) => link.category != "Private").toList();
+    } else {
+      return _links.where((link) => link.category == _selectedFilter).toList();
+    }
+  }
 
-    await showDialog(
+  Widget _buildFilterTabs() {
+    final filters = ["All", ..._groupedLinks.keys, "Private"];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: filters.map((filter) {
+          final isSelected = _selectedFilter == filter;
+          return GestureDetector(
+            onTap: () async {
+              if (filter == "Private") {
+                // Show passcode dialog
+                bool isAuthenticated = await _showPasscodeDialog();
+                if (isAuthenticated) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PrivateLink(),
+                    ),
+                  );
+                }
+              } else {
+                setState(() {
+                  _selectedFilter = filter;
+                });
+              }
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 5),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFF16404D) : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                filter,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Future<bool> _showPasscodeDialog() async {
+    String correctPasscode = "1234";
+    TextEditingController passcodeController = TextEditingController();
+
+    return await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Add Link'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Name')),
-              TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description')),
-              TextField(
-                  controller: linkController,
-                  decoration: const InputDecoration(labelText: 'Link')),
-            ],
+          title: const Text("Enter Passcode"),
+          content: TextField(
+            controller: passcodeController,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              hintText: "Passcode",
+            ),
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel')),
-            TextButton(
-              onPressed: () async {
-                final newLink = Link(
-                  id: 0,
-                  name: nameController.text,
-                  description: descriptionController.text,
-                  link: linkController.text,
-                  createdAt: DateTime.now(),
-                );
-                await LinkService.addLink(newLink);
-                _fetchLinks();
-                Navigator.pop(context);
+              onPressed: () {
+                Navigator.of(context).pop(false);
               },
-              child: const Text('Add'),
+              child: const Text("Cancel"),
+            ),
+            OutlinedButton(
+              onPressed: () {
+                if (passcodeController.text == correctPasscode) {
+                  Navigator.of(context).pop(true);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Incorrect Passcode!")),
+                  );
+                }
+              },
+              child: Text(
+                "Enter",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         );
       },
-    );
+    ) ??
+        false;
   }
+
 
   Future<void> _deleteLink(int id) async {
     await LinkService.deleteLink(id);
@@ -97,9 +173,11 @@ class _LinkListScreenState extends State<LinkListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredLinks = _getFilteredLinks();
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFFFBF5DD),
+        backgroundColor: const Color(0xFFFBF5DD),
         centerTitle: true,
         title: const Text(
           "LinkHub",
@@ -110,65 +188,76 @@ class _LinkListScreenState extends State<LinkListScreen> {
               letterSpacing: 1.5),
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: TextField(
-              controller: _searchController,
-              cursorColor: Colors.black,
-              decoration: InputDecoration(
-                labelText: 'Search Links',
-                labelStyle: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.black),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.black), // Black border when not focused
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.black, width: 2.0), // Thicker black border when focused
-                ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    cursorColor: Colors.black,
+                    decoration: InputDecoration(
+                      labelText: 'Search Links',
+                      labelStyle: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.black, width: 2.0),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFilterTabs(),
+                ],
               ),
             ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    itemCount: _filteredLinks.length,
-                    itemBuilder: (context, index) {
-                      final link = _filteredLinks[index];
-                      return LinkCard(
-                        link: link,
-                        onTap: () => showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) {
-                            return FractionallySizedBox(
-                              heightFactor: 0.75,
-                              child: LinkDetailsBottomSheet(
-                                link: link,
-                                onDelete: () => _deleteLink(link.id),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                padding: const EdgeInsets.only(bottom: 60),
+                itemCount: filteredLinks.length,
+                itemBuilder: (context, index) {
+                  final link = filteredLinks[index];
+                  return LinkCard(
+                    link: link,
+                    onTap: () => showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) {
+                        return FractionallySizedBox(
+                          heightFactor: 0.80,
+                          child: LinkDetailsBottomSheet(
+                            link: link,
+                            onDelete: () => _deleteLink(link.id),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addLink,
+        onPressed: () async {
+          // Add your _addLink logic
+        },
         backgroundColor: Colors.blue.shade800,
         child: const Icon(Icons.add, color: Colors.white),
       ),

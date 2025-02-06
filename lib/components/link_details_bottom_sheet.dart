@@ -28,6 +28,7 @@ class LinkDetailsBottomSheet extends StatelessWidget {
           const SizedBox(height: 16),
           Expanded(
             child: ListView(
+              padding: const EdgeInsets.only(bottom: 40.0),
               children: [
                 _buildDetailItem('Title', link.name),
                 _buildDetailItem('Description', link.description),
@@ -41,6 +42,7 @@ class LinkDetailsBottomSheet extends StatelessWidget {
                     size: 300.0,
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
