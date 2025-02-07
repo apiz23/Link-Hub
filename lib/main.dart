@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:linkhub/app_theme.dart';
+import 'package:linkhub/components/splash_screen.dart';
 import 'package:linkhub/views/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:linkhub/views/links.dart';
@@ -10,8 +11,7 @@ void main() async {
 
   await Supabase.initialize(
     url: 'https://ykzglhnkmwqyekcvutgx.supabase.co',
-    anonKey:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlremdsaG5rbXdxeWVrY3Z1dGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTA1NjYzNTIsImV4cCI6MjAyNjE0MjM1Mn0.qO5klTaA07a2cb9QL0G6osMhBWG1n1t34CH2yhxXyLQ',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlremdsaG5rbXdxeWVrY3Z1dGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTA1NjYzNTIsImV4cCI6MjAyNjE0MjM1Mn0.qO5klTaA07a2cb9QL0G6osMhBWG1n1t34CH2yhxXyLQ',
   );
 
   runApp(const MyApp());
@@ -27,8 +27,34 @@ class MyApp extends StatelessWidget {
       title: 'Link Hub',
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.system,
-      home: const HomeScreen(),
+      home: const SplashWrapper(),
     );
+  }
+}
+
+class SplashWrapper extends StatefulWidget {
+  const SplashWrapper({super.key});
+
+  @override
+  _SplashWrapperState createState() => _SplashWrapperState();
+}
+
+class _SplashWrapperState extends State<SplashWrapper> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isLoading ? SplashScreen() : const HomeScreen();
   }
 }
 

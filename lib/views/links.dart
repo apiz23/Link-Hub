@@ -190,7 +190,6 @@ class _LinkListScreenState extends State<LinkListScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFFBF5DD),
-        centerTitle: true,
         title: const Text(
           "LinkHub",
           style: TextStyle(
@@ -212,25 +211,21 @@ class _LinkListScreenState extends State<LinkListScreen> {
                     cursorColor: Colors.black,
                     decoration: InputDecoration(
                       labelText: 'Search Links',
-                      labelStyle: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                      prefixIcon: const Icon(Icons.search),
+                      labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.black),
+                      prefixIcon: Icon(Icons.search, color: Colors.black),
+                      filled: true,
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.black),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.black),
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.black, width: 2.0),
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: Colors.black, width: 2.0),
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 20),
                   _buildFilterTabs(),
                 ],

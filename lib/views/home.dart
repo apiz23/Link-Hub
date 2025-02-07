@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -24,12 +25,6 @@ class _HomeViewState extends State<HomeView> {
               color: Colors.black,
               letterSpacing: 1.5),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Container(
         padding: EdgeInsets.fromLTRB(20, 50, 20, 10),
@@ -37,6 +32,16 @@ class _HomeViewState extends State<HomeView> {
           // mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Lottie.asset(
+                  'assets/home.json',
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
             Text(
               'Welcome to LinkHub',
               textAlign: TextAlign.left,
