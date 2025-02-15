@@ -31,11 +31,6 @@ class BottomNavBar extends StatelessWidget {
           label: 'Links',
           labelStyle: const TextStyle(color: Colors.white),
         ),
-        CurvedNavigationBarItem(
-          child: const Icon(Icons.settings, size: 30, color: Colors.white),
-          label: 'Settings',
-          labelStyle: const TextStyle(color: Colors.white),
-        ),
       ],
     );
   }

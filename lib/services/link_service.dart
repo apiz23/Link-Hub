@@ -21,4 +21,15 @@ class LinkService {
   static Future<void> deleteLink(int id) async {
     await _client.from('link-hub').delete().eq('id', id);
   }
+
+  static Future<List<String>?> fetchPasscodes() async {
+    final response = await _client.from('tokens').select('token');
+
+    if (response.isEmpty) {
+      return null;
+    }
+
+    return response.map<String>((entry) => entry['token'].toString()).toList();
+  }
+
 }

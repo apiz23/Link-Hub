@@ -10,13 +10,13 @@ class LinkListScreen extends StatefulWidget {
   const LinkListScreen({super.key});
 
   @override
-  State<LinkListScreen> createState() => _LinkListScreenState();
+  State createState() => _LinkListScreenState();
 }
 
 class _LinkListScreenState extends State<LinkListScreen> {
-  List<Link> _allLinks = [];
-  List<Link> _links = [];
-  Map<String, List<Link>> _groupedLinks = {};
+  List _allLinks = [];
+  List _links = [];
+  final Map<String, List<Link>> _groupedLinks = {};
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = "All";
@@ -36,7 +36,6 @@ class _LinkListScreenState extends State<LinkListScreen> {
     setState(() => _isLoading = false);
   }
 
-
   // Group links by their category
   void _groupLinksByCategory() {
     _groupedLinks.clear();
@@ -51,7 +50,6 @@ class _LinkListScreenState extends State<LinkListScreen> {
     }
   }
 
-
   void _filterLinks() {
     final query = _searchController.text.toLowerCase();
     setState(() {
@@ -63,24 +61,17 @@ class _LinkListScreenState extends State<LinkListScreen> {
     });
   }
 
-
-
-  List<Link> _getFilteredLinks() {
+  List _getFilteredLinks() {
     final query = _searchController.text.toLowerCase();
-
-    var filtered = _links.where((link) => link.category != "Private").toList();
-
+    List filtered = _links.where((link) => link.category != "Private").toList();
     if (_selectedFilter != "All") {
       filtered = filtered.where((link) => link.category == _selectedFilter).toList();
     }
-
     if (query.isNotEmpty) {
       filtered = filtered.where((link) => link.name.toLowerCase().contains(query)).toList();
     }
-
     return filtered;
   }
-
 
   Widget _buildFilterTabs() {
     final filters = ["All", ..._groupedLinks.keys, "Private"];
@@ -129,18 +120,27 @@ class _LinkListScreenState extends State<LinkListScreen> {
   }
 
   Future<bool> _showPasscodeDialog() async {
-    String correctPasscode = "1234";
-    TextEditingController passcodeController = TextEditingController();
+    print("Opening passcode dialog..."); // Debug print
 
+    final passcodes = await LinkService.fetchPasscodes(); // Fetch all passcodes
+    if (passcodes == null || passcodes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch passcodes!")),
+      );
+      return false;
+    }
+
+    TextEditingController passcodeController = TextEditingController();
     return await showDialog(
       context: context,
       builder: (context) {
+        print("Building dialog...");
         return AlertDialog(
           title: const Text("Enter Passcode"),
           content: TextField(
             controller: passcodeController,
             obscureText: true,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.text,
             decoration: const InputDecoration(
               hintText: "Passcode",
             ),
@@ -154,7 +154,7 @@ class _LinkListScreenState extends State<LinkListScreen> {
             ),
             OutlinedButton(
               onPressed: () {
-                if (passcodeController.text == correctPasscode) {
+                if (passcodes.contains(passcodeController.text)) {
                   Navigator.of(context).pop(true);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -162,7 +162,7 @@ class _LinkListScreenState extends State<LinkListScreen> {
                   );
                 }
               },
-              child: Text(
+              child: const Text(
                 "Enter",
                 style: TextStyle(
                   color: Colors.black,
@@ -177,6 +177,112 @@ class _LinkListScreenState extends State<LinkListScreen> {
         false;
   }
 
+  Future<void> _showAddLinkDialog() async {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController descriptionController = TextEditingController();
+    final TextEditingController urlController = TextEditingController();
+    final TextEditingController categoryController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.blue.shade100,
+          title: const Text("Add New Link"),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    hintText: 'Enter link name',
+                  ),
+                ),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    hintText: 'Enter link description',
+                  ),
+                ),
+                TextField(
+                  controller: urlController,
+                  decoration: const InputDecoration(
+                    labelText: 'URL',
+                    hintText: 'Enter link URL',
+                  ),
+                ),
+                TextField(
+                  controller: categoryController,
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                    hintText: 'Enter link category',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // Validate inputs
+                if (nameController.text.isEmpty ||
+                    descriptionController.text.isEmpty ||
+                    urlController.text.isEmpty ||
+                    categoryController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please fill all fields!")),
+                  );
+                  return;
+                }
+                // Create a new Link object
+                final newLink = Link(
+                  name: nameController.text,
+                  description: descriptionController.text,
+                  link: urlController.text,
+                  category: categoryController.text,
+                  createdAt: DateTime.now(),
+                  id: 0,
+                );
+                try {
+                  await LinkService.addLink(newLink);
+                  // Refresh list after adding
+                  setState(() {});
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Failed to add link: $e")),
+                  );
+                }
+              },
+              child: const Text(
+                "Add",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> _deleteLink(int id) async {
     await LinkService.deleteLink(id);
@@ -186,17 +292,17 @@ class _LinkListScreenState extends State<LinkListScreen> {
   @override
   Widget build(BuildContext context) {
     final filteredLinks = _getFilteredLinks();
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFFBF5DD),
         title: const Text(
           "LinkHub",
           style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-              letterSpacing: 1.5),
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+            letterSpacing: 1.5,
+          ),
         ),
       ),
       body: SafeArea(
@@ -225,46 +331,52 @@ class _LinkListScreenState extends State<LinkListScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
                   _buildFilterTabs(),
                 ],
               ),
             ),
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                padding: const EdgeInsets.only(bottom: 60),
-                itemCount: filteredLinks.length,
-                itemBuilder: (context, index) {
-                  final link = filteredLinks[index];
-                  return LinkCard(
-                    link: link,
-                    onTap: () => showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (context) {
-                        return FractionallySizedBox(
-                          heightFactor: 0.80,
-                          child: LinkDetailsBottomSheet(
-                            link: link,
-                            onDelete: () => _deleteLink(link.id),
-                          ),
-                        );
-                      },
-                    ),
-                  );
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await _fetchLinks();
                 },
+                child: _isLoading
+                    ? const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation(Colors.black),
+                  ),
+                )
+                    : ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 60),
+                  itemCount: filteredLinks.length,
+                  itemBuilder: (context, index) {
+                    final link = filteredLinks[index];
+                    return LinkCard(
+                      link: link,
+                      onTap: () => showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) {
+                          return FractionallySizedBox(
+                            heightFactor: 0.80,
+                            child: LinkDetailsBottomSheet(
+                              link: link,
+                              onDelete: () => _deleteLink(link.id),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // Add your _addLink logic
-        },
+        onPressed: _showAddLinkDialog,
         backgroundColor: Colors.blue.shade800,
         child: const Icon(Icons.add, color: Colors.white),
       ),
