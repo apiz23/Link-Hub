@@ -14,6 +14,7 @@ class LinkService {
       'name': link.name,
       'description': link.description,
       'link': link.link,
+      'category': link.category,
       'created_at': link.createdAt.toIso8601String(),
     });
   }
@@ -32,4 +33,12 @@ class LinkService {
     return response.map<String>((entry) => entry['token'].toString()).toList();
   }
 
+  static Future<void> updateLink(Link link) async {
+    await _client.from('link-hub').update({
+      'name': link.name,
+      'description': link.description,
+      'link': link.link,
+      'category': link.category,
+    }).eq('id', link.id);
+  }
 }

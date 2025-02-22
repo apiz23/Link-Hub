@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:linkhub/models/link_model.dart';
+import 'package:linkhub/services/link_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -33,6 +34,7 @@ class LinkDetailsBottomSheet extends StatelessWidget {
                 _buildDetailItem('Title', link.name),
                 _buildDetailItem('Description', link.description),
                 _buildDetailItem('Link', link.link),
+                _buildDetailItem('Category', link.category),
                 _buildDetailItem('Created', link.createdAt.toString()),
                 const SizedBox(height: 16),
                 Center(
@@ -71,6 +73,17 @@ class LinkDetailsBottomSheet extends StatelessWidget {
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Delete Link'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showEditCategoryDialog(context, link);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Edit Category'),
               ),
             ],
           ),
@@ -116,6 +129,85 @@ class LinkDetailsBottomSheet extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showEditCategoryDialog(BuildContext context, Link link) {
+    final TextEditingController categoryController = TextEditingController(text: link.category);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Edit Category"),
+          content: TextField(
+            controller: categoryController,
+            decoration: InputDecoration(
+              hintText: 'New category',
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newCategory = categoryController.text.trim();
+                if (newCategory.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Category cannot be empty!")),
+                  );
+                  return;
+                }
+
+                // Update the link's category
+                final updatedLink = Link(
+                  id: link.id,
+                  name: link.name,
+                  description: link.description,
+                  link: link.link,
+                  category: newCategory,
+                  createdAt: link.createdAt,
+                );
+
+                try {
+                  await LinkService.updateLink(updatedLink);
+                  Navigator.of(context).pop(); // Close the dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Category updated successfully!")),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Failed to update category: $e")),
+                  );
+                }
+              },
+              child: const Text(
+                "Save",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

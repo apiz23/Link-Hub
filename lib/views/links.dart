@@ -5,6 +5,7 @@ import 'package:linkhub/components/link_details_bottom_sheet.dart';
 import 'package:linkhub/models/link_model.dart';
 import 'package:linkhub/views/private_link.dart';
 import '../services/link_service.dart';
+import 'package:flutter/cupertino.dart';
 
 class LinkListScreen extends StatefulWidget {
   const LinkListScreen({super.key});
@@ -187,39 +188,71 @@ class _LinkListScreenState extends State<LinkListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.blue.shade100,
+          backgroundColor: const Color(0xFFFBF5DD),
           title: const Text("Add New Link"),
           content: SizedBox(
             width: MediaQuery.of(context).size.width * 0.8,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    hintText: 'Enter link name',
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      hintText: 'Link name',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
                   ),
                 ),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    hintText: 'Enter link description',
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(
+                      hintText: 'Link description',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
                   ),
                 ),
-                TextField(
-                  controller: urlController,
-                  decoration: const InputDecoration(
-                    labelText: 'URL',
-                    hintText: 'Enter link URL',
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextField(
+                    controller: urlController,
+                    decoration: InputDecoration(
+                      hintText: 'Link URL',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
                   ),
                 ),
-                TextField(
-                  controller: categoryController,
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    hintText: 'Enter link category',
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextField(
+                    controller: categoryController,
+                    decoration: InputDecoration(
+                      hintText: 'Link category',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -239,7 +272,6 @@ class _LinkListScreenState extends State<LinkListScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                // Validate inputs
                 if (nameController.text.isEmpty ||
                     descriptionController.text.isEmpty ||
                     urlController.text.isEmpty ||
@@ -249,7 +281,6 @@ class _LinkListScreenState extends State<LinkListScreen> {
                   );
                   return;
                 }
-                // Create a new Link object
                 final newLink = Link(
                   name: nameController.text,
                   description: descriptionController.text,
@@ -260,7 +291,6 @@ class _LinkListScreenState extends State<LinkListScreen> {
                 );
                 try {
                   await LinkService.addLink(newLink);
-                  // Refresh list after adding
                   setState(() {});
                   Navigator.of(context).pop();
                 } catch (e) {
@@ -287,6 +317,84 @@ class _LinkListScreenState extends State<LinkListScreen> {
   Future<void> _deleteLink(int id) async {
     await LinkService.deleteLink(id);
     _fetchLinks();
+  }
+
+  Future<void> _showEditCategoryDialog(Link link) async {
+    final TextEditingController categoryController = TextEditingController(text: link.category);
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Edit Category"),
+          content: TextField(
+            controller: categoryController,
+            decoration: InputDecoration(
+              hintText: 'New category',
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newCategory = categoryController.text.trim();
+                if (newCategory.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Category cannot be empty!")),
+                  );
+                  return;
+                }
+
+                final updatedLink = Link(
+                  id: link.id,
+                  name: link.name,
+                  description: link.description,
+                  link: link.link,
+                  category: newCategory,
+                  createdAt: link.createdAt,
+                );
+
+                try {
+                  await LinkService.updateLink(updatedLink);
+                  setState(() {
+                    _fetchLinks();
+                  });
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Failed to update category: $e")),
+                  );
+                }
+              },
+              child: const Text(
+                "Save",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
